@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Snake</title>
+        <link rel="stylesheet" type="text/css" href="main.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="./gameTools.js"></script>
+        <script src="./main.js"></script>
+        <meta charset="utf-8">
+        <style>
+            .game{
+                position: relative;
+                width: 400px;
+                height: 400px;
+                background-color: azure;
+                border: 3px solid black;
+                padding: 0px;
+                margin: 0px;
+            }
+            .rect{
+                position: absolute;
+                border: 1px solid black;
+                padding: 0px;
+                margin: 0px;
+                text-align: center;
+                color: white;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="menu-games">
+            <a href="./index.html">דף ראשי</a>
+            <button onclick="startGame();" style="background-color: red;">Start Game</button>
+            <button onclick="stopGame();">Stop Game</button>
+            <h6 id='score-snake'></h6>
+        </div>
+    </body>
+    <script>
+        const divGame = document.createElement('DIV');
+        divGame.style.display='block';
+        divGame.style.margin='0 auto';
+        const labelScore = document.getElementById('score-snake');
+        divGame.setAttribute('class','game');
+        document.body.appendChild(divGame);
+
+        const DIRECTION = {'left':0,'right':1,'up':2,'down':3};
+        const sizeRect = 20;
+        const width = $(divGame).width();
+        const height = $(divGame).height();
+        
+        //timer game
+        var timerGame;
+        var scoreGame=0;
+        labelScore.innerHTML = scoreGame;
+        var speed = 150;
+
+        // head snake cordinate
+        var headX=0;
+        var headY=0;
+
+        //prev X,Y of head
+        var prevX;
+        var prevY;
+        // fruit
+        var fruit = new Fruit(((width/sizeRect)/2)*sizeRect,((width/sizeRect)/2)*sizeRect,sizeRect,'red',divGame);
+        //snake arrray
+        var snakeTail=[];
+        //set first tail snake
+        for(var i=0;i<3;i++){
+            var rect = new Snake(0,0,sizeRect,'green',divGame);
+            snakeTail.push(rect);
+        }
+        // direction of snake
+        var diretSnake = DIRECTION.right;
+        // event of user input
+        document.addEventListener('keydown',(e)=>{
+            switch(e.keyCode){
+                case 37: // left
+                    if(diretSnake != DIRECTION.right && headY!=prevY){
+                        diretSnake = DIRECTION.left;
+                    }
+                        
+                    break;
+                case 38: // up
+                    if(diretSnake != DIRECTION.down && headX!=prevX){
+                        diretSnake = DIRECTION.up;
+                    }
+                    break;
+                case 39: // right
+                    if(diretSnake != DIRECTION.left && headY!=prevY){
+                        diretSnake = DIRECTION.right;
+                    }
+                    break;
+                case 40: // down
+                    if(diretSnake != DIRECTION.up && headX!=prevX){
+                        diretSnake = DIRECTION.down;
+                    }
+                    break;
+            }
+        });
+        
+        function moveSnake(){
+            prevX = headX;
+            prevY = headY;
+            switch(diretSnake){
+                case DIRECTION.left: // move left
+                    if(headX > 0){
+                        headX = headX-sizeRect;
+                    }
+                    break; 
+                case DIRECTION.right: // move right
+                    if(headX < (width-sizeRect)){
+                        headX = headX+sizeRect;
+                    }
+                    break; 
+                case DIRECTION.up: // move up
+                    if(headY > 0){
+                        headY = headY-sizeRect;
+                    }
+                    break; 
+                case DIRECTION.down: // move down
+                    if(headY < (height-sizeRect)){
+                        headY = headY+sizeRect;
+                    }
+                    break; 
+            }
+        }
+        function dwawTail(){
+            snakeTail[0].setColor('blue');
+            var tempX;
+            var tempY;
+            prevX = headX;
+            prevY = headY;
+            for(let i=0;i<lengthSnake;i++){
+                snakeTail[i].setText(i);
+                tempX = snakeTail[i].getX;
+                tempY = snakeTail[i].getY;
+                snakeTail[i].setXY(prevX,prevY);
+                prevX = tempX
+                prevY = tempY
+            }
+        }
+        function isOnFruit(){
+            if(headX == fruit.getX && headY == fruit.getY){
+                let s = new Snake(prevX,prevY,sizeRect,'green',divGame);
+                // add element to tail
+                snakeTail.push(s);
+                var newXfruit;
+                var newYfruit;
+                do{
+                    newXfruit = Math.floor(Math.random() * ((width/sizeRect)-1));
+                    newYfruit = Math.floor(Math.random() * ((height/sizeRect)-1));
+                }while(isOnTail(newXfruit,newYfruit));
+                fruit.setXY(newXfruit*sizeRect,newYfruit*sizeRect);
+
+                labelScore.innerHTML = scoreGame=scoreGame+9;
+            }
+        }
+        function isOnTail(x,y){
+            for(let i=1;i<lengthSnake;i++){
+                if(snakeTail[i].getX == x && snakeTail[i].getY == y)
+                    return true;
+            }
+            return false;
+        }
+        function mainGame(){
+            moveSnake();
+            dwawTail();
+            isOnFruit();
+            if(isOnTail(headX,headY)){
+                stopGame();
+            }
+        }
+        function startGame(){
+            timerGame = setInterval(mainGame,speed);
+        }
+        function stopGame(){
+            clearInterval(timerGame);
+            labelScore.style.left= width+'px';
+            labelScore.innerHTML = 'Your score is '+scoreGame;
+            setScore('snake', scoreGame);
+        }
+    </script>
+</html>

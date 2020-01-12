@@ -1,0 +1,39 @@
+.div-canvas{
+    position: relative;
+}
+.my-canvas{
+    position: relative;
+    background-color: whitesmoke;
+    background-position: center;
+    box-shadow: inset 0 0 10px black;
+    text-align: center;
+    margin: auto;
+    cursor: pointer;
+
+}
+.paleta{
+    position: relative;
+    height: 30px;
+    padding: 10px;
+}
+.paleta .color{
+    display: inline-block;
+    border: 1px solid black;
+    box-shadow: 2px 2px 4px black;
+    border-radius: 30%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    text-align: center
+}
+.paleta .size{
+    display: block;
+    background-color:white;
+    box-shadow: 2px 2px 4px black;
+    border: 1px solid black;
+    border-radius: 30%;
+    margin: 15px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+}

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="main.css">
+        <script src="./gameTools.js"></script>
+        <script src="./main.js"></script>
+        <title>Tetris</title>
+        <meta charset="utf-8">
+        <style>
+            .game{
+                position: relative;
+                width: 200px;
+                height: 400px;
+                background-color: black;
+                border: 3px solid black;
+                padding: 0px;
+                margin: 0px;
+                border: 2px solid goldenrod;
+            }
+            .rect{
+                position: absolute;
+                padding: 0px;
+                margin: 0px;
+                text-align: center;
+                color: white;
+                border: 1px solid gold;
+                border-radius: 5px;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="menu-games">
+            <a href="./index.html">דף ראשי</a>
+            <button onclick="startGame(this)" style="background-color: red;">Start</button>
+            <button onclick="stopGame()">Stop</button>
+            <h6 id='score-tetris'></h6>
+        </div>
+    </body>
+    <script>
+        const divGame = document.createElement('DIV');
+        divGame.style.display='block';
+        divGame.style.margin='0 auto';
+        const labelScore = document.getElementById('score-tetris');
+        divGame.setAttribute('class','game');
+        document.body.appendChild(divGame);
+        // sound 
+        const soundShapDown = new Audio('sounds/shape_down.wav');
+
+        var timer;
+        const sizeRect = 20;
+        const SHAPES = {
+            0:[ 
+                [
+                    [1,1],
+                    [1,1],
+                ],
+            ],
+            1:[
+                [
+                    [0,1,0],
+                    [1,1,1]
+                ],
+                [
+                    [1,0],
+                    [1,1],
+                    [1,0]
+                ],
+                [
+                    [1,1,1],
+                    [0,1,0],
+                ],
+                [
+                    [0,1],
+                    [1,1],
+                    [0,1]
+                ]   
+            ],
+            2:[
+                [
+                    [0,1,1],
+                    [1,1,0],
+                ],
+                [
+                    [1,0],
+                    [1,1],
+                    [0,1],
+                ],
+            ],
+            3:[
+                [
+                    [1,1,0],
+                    [0,1,1],
+                ],
+                [
+                    [0,1],
+                    [1,1],
+                    [1,0],
+                ],
+            ],
+            4:[
+                [
+                    [1,1,1,1],
+                ],
+                [
+                    [1],
+                    [1],
+                    [1],
+                    [1]
+                ],
+            ],
+            5:[
+                [
+                    [1,0,0],
+                    [1,1,1],
+                ],
+                [
+                    [1,1],
+                    [1,0],
+                    [1,0],
+                ],
+                [
+                    [1,1,1],
+                    [0,0,1],
+                ],
+                [
+                    [0,1],
+                    [0,1],
+                    [1,1],
+                ],
+            ],
+            6:[
+                [
+                    [0,0,1],
+                    [1,1,1],
+                ],
+                [
+                    [1,0]
+                    [1,0],
+                    [1,1],
+                ],
+                [
+                    [1,1,1],
+                    [1,0,0],
+                ],
+                [
+                    [1,1],
+                    [0,1],
+                    [0,1],
+
+                ],
+            ],
+        };
+        // offset of shape
+        const offset = {
+            x : 4,
+            y : -3
+        }
+        var indexTypeShape = Math.floor(Math.random()*6);
+        var indexShape = Math.floor(Math.random()*SHAPES[indexTypeShape].length);
+        const table = new Table(20,10,sizeRect);
+        var shape = SHAPES[indexTypeShape][indexShape];
+        var speed = 500;
+        var score = 0;
+        labelScore.innerHTML = score +' - Points';
+        table.drawShape(shape,offset,'blue');
+        
+        document.addEventListener('keydown',(e)=>{
+            //clear table
+            divGame.innerHTML='';
+            if(e.keyCode == 39){ // right
+                //next step to right check befor do next step
+                var nextOffset = {x:offset.x+1,y:offset.y-1};
+                if(table.checkSide(shape,offset,'right') && (!table.isShapeStop(shape,nextOffset))){
+                    offset.x++;
+                }
+            }
+            else if(e.keyCode == 37){
+                //next step to keft check befor do next step
+                var nextOffset = {x:offset.x-1,y:offset.y-1};
+                if(table.checkSide(shape,offset,'left') && (!table.isShapeStop(shape,nextOffset))){
+                    offset.x--;
+                }
+            }
+            else if(e.keyCode == 40){
+                if(!table.isShapeStop(shape,offset))
+                    offset.y++;
+            }
+            else if(e.keyCode==38){ // change shape
+                var len=SHAPES[indexTypeShape].length;
+                if((indexShape+1) < len && table.isShapeStop(SHAPES[indexTypeShape][indexShape+1],offset)==false){
+                    indexShape++;
+                    shape = SHAPES[indexTypeShape][indexShape];
+                    divGame.innerHTML='';
+                }
+                else if(table.isShapeStop(SHAPES[indexTypeShape][0],offset)==false){
+                    indexShape=0;
+                    shape = SHAPES[indexTypeShape][indexShape];
+                    divGame.innerHTML='';
+                }
+            }
+            table.drawTable();
+            table.drawShape(shape,offset,'blue');
+        });
+        function main(){
+            if(table.isGameOver()){
+                    alert('Game Over!');
+                    stopGame();
+                }
+                else if(table.isShapeStop(shape,offset)){
+                    //play sound
+                    soundShapDown.play();
+                    table.setCordinats(shape,offset);
+                    var cr = table.checkFullRows();
+                    if(cr!=0){ // add score
+                        score = score + (cr*10);
+                        labelScore.innerHTML = score +' - Points';
+                    }
+                    offset.x=4;
+                    offset.y=-3;
+                    indexTypeShape = Math.floor(Math.random()*6);
+                    indexShape = Math.floor(Math.random()*SHAPES[indexTypeShape].length);
+                    shape = SHAPES[indexTypeShape][indexShape];
+                }
+                else{
+                    offset.y++;
+                }
+                divGame.innerHTML='';
+                table.drawTable();
+                table.drawShape(shape,offset,'blue');
+        }
+        function startGame(btn){
+            btn.blur();
+            timer = setInterval(main,speed);
+        }
+        function stopGame(){
+            clearInterval(timer);
+            setScore('tetris',score);
+        }
+    </script>
+</html>

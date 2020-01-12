@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            #game{
+                position: relative;
+                background-color: azure;
+                width: 600px;
+                height: 600px;
+                border: 3px solid black;
+            }
+            .ball{
+                position: absolute;
+                background-color: blue;
+                width: 50px;
+                height: 50px;
+                border: 1px solid black;
+                border-radius: 50%;
+                box-shadow: 2px 2px 5px black;
+                z-index: 3;
+            }
+            #start{
+                width: 100px;
+                height: 50px;
+                margin-top: 10px;
+                padding: 5px;
+                background-color: whitesmoke;
+                color: red;
+                border: 2px solid black;
+                border-radius: 5px;
+                font-size: 18px;
+                text-shadow: 1px 1px 3px black;
+                cursor: pointer;
+            }
+            #start:hover{
+                background-color: red;
+                color: whitesmoke;
+            }
+            .paddle{
+                position: absolute;
+                height: 10px;
+                background-color: red;
+                border: 1px solid black;
+                border-radius: 3px;
+                box-shadow: 1px 1px 2px black;
+            }
+            #paddleUp{
+                top: 1px;
+            }
+            #paddleBottom{
+                bottom: 1px;
+            }
+        </style>
+        <title>Jump Ball</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="main.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="./main.js"></script>
+    </head>
+    <body>
+        <div class="menu-games">
+            <a href="./index.html">דף ראשי</a>
+            <button id='start' onclick="startGame()">Start</button>
+            <h6 id='score-jump-ball'></h6>
+        </div>
+        <div id='game' style="display: block;margin: 5px auto;"></div>
+        <script> // script for jump ball
+            // select main div
+            var mainDiv = document.getElementById('game');
+            var secondPrewiew = document.getElementById('score-jump-ball');
+            // create ball
+            var ball = document.createElement('DIV');
+            ball.setAttribute('class','ball');
+            /*sound hit ball*/
+            const soundHitBall = new Audio('sounds/Paddle_ball_hit.wav');
+            //create paddle
+            var paddleUp = document.createElement('div');
+            var paddleBottom = document.createElement('div');
+            paddleUp.setAttribute('class','paddle');
+            paddleBottom.setAttribute('class','paddle');
+            paddleUp.setAttribute('id','paddleUp');
+            paddleBottom.setAttribute('id','paddleBottom');
+
+            //apend ball and paddle to main div
+            mainDiv.appendChild(ball);
+            mainDiv.appendChild(paddleUp);
+            mainDiv.appendChild(paddleBottom);
+            // get size of screen
+            var width = $( mainDiv ).width();
+            var height = $( mainDiv ).height();
+            //ball size
+            // positions varibule of ball
+            var leftBall = 150;
+            var bottomBall = 150;
+
+            // positions varibule of paddle
+            var posPaddle = 50;
+            var sizePaddle = 200;
+            var balDiameter = 50;
+            // set size paddle and pos
+            paddleUp.style.width = (sizePaddle+'px');
+            paddleBottom.style.width = (sizePaddle+'px');
+            paddleUp.style.left = (posPaddle+'px');
+            paddleBottom.style.left = (posPaddle+'px');
+
+            // flag direction ball
+            var flagJump = true;    // flag == true is down
+            var flagSide = true;    // flag == true is left
+
+            var step = 1;
+            var speed = 10;
+            
+            var second = 0;
+            var score = 0;
+
+            var gameTimer;
+            var clockTimer;
+            
+            document.addEventListener('keydown',(e)=>{
+                switch(e.keyCode){
+                    case 37: //left
+                        if(posPaddle > 0){
+                            posPaddle = posPaddle - 50;
+                            paddleUp.style.left = (posPaddle +'px');
+                            paddleBottom.style.left = (posPaddle +'px');
+                        }
+                        break;
+                    case 39: // right
+                        if(posPaddle < (width-sizePaddle)){
+                            posPaddle = posPaddle + 50;
+                            paddleUp.style.left = (posPaddle +'px');
+                            paddleBottom.style.left = (posPaddle +'px');
+                        }
+                        break;
+                }
+            });
+            function ballMove(){
+                // set direction height
+                if(flagJump === true)
+                    bottomBall=bottomBall+step;
+                else
+                    bottomBall=bottomBall-step;
+                // set direction side
+                if(flagSide === true)
+                    leftBall=leftBall+step;
+                else
+                    leftBall=leftBall-step;
+                // set new step
+                ball.style.left = (leftBall +'px');
+                ball.style.bottom = (bottomBall +'px');
+                directionBall();
+                if(isBallOnPaddle()){
+                    soundHitBall.play();
+                }
+                if(isGameOver()){
+                    stopGame();
+                    secondPrewiew.innerHTML = 'Game Over!<br>Your Score is '+ score;
+                }
+            }
+            // check direction of ball
+            function directionBall(){
+                if(isBallOnPaddle()==true){
+                    flagJump === true ? flagJump=false : flagJump=true;
+                    score=score+10;
+                    secondPrewiew.innerHTML=score;
+                }
+                if(leftBall > (width-balDiameter)){
+                    flagSide = false;
+                }
+                else if(leftBall < 0){
+                    flagSide = true;
+                }
+            }
+            function isBallOnPaddle(){
+                 // ball in side width
+                if((leftBall >= (posPaddle-balDiameter)) && leftBall <= (posPaddle+sizePaddle))
+                    if(bottomBall <= 10)
+                        return true;
+                    else if(bottomBall >= (height-(balDiameter+10)))
+                        return true;
+            }
+            function isGameOver(){
+                if(bottomBall <= 0)
+                    return true;
+                else if(bottomBall >= (height-balDiameter))
+                    return true;
+
+            }
+            function startClock(){
+                secondPrewiew.innerHTML=score;
+                clockTimer = setInterval(()=>{
+                    second=second+1;
+                    if((second%10==0)){
+                        step=step+0.5;
+                        if(sizePaddle > 100){
+                            sizePaddle=sizePaddle-50;
+                            paddleUp.style.width = (sizePaddle+'px');
+                            paddleBottom.style.width = (sizePaddle+'px');
+                        }
+                        if(balDiameter >= 20){
+                            balDiameter=balDiameter-10;
+                            ball.style.width=balDiameter+'px';
+                            ball.style.height=balDiameter+'px';
+                        }
+                    }
+                },1000);
+            }
+            function startGame(){
+                resetBall();
+                gameTimer = setInterval(ballMove, speed);
+                startClock();
+            }
+            function stopGame(){
+                clearInterval(gameTimer);
+                clearInterval(clockTimer);
+                setScore('jump-ball',score);
+            }
+            function resetBall(){
+                leftBall=150;
+                bottomBall=150;
+                flagJump=true;
+                flagSide=true;
+                ball.style.left = (leftBall +'px');
+                ball.style.bottom = (bottomBall +'px');
+                second=0;
+                score=0;
+            }
+        </script>
+    </body>
+</html>

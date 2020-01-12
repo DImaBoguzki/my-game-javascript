@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="main.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="./main.js"></script>
+        <style>
+            #header-name{
+                text-align: center;
+                font-size: 56px;
+                color: white;
+                text-shadow: -5px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+                animation: flash 3s infinite;
+            }
+            .dialogBox {
+                display: none;
+                position: fixed;
+                top:0;
+                left: 0;
+                overflow: auto;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.6);
+                z-index: 1;
+            }
+            .contentDialogBox {
+                margin: 200px auto;
+                padding: 20px;
+                width: 60%;
+                text-align: center;
+                background-color: whitesmoke;
+                border: 1px solid black;
+                border-radius: 20px;
+                box-shadow: 5px 5px 15px black;
+                opacity: 1;
+            }
+            .contentDialogBox p,input[type=text]{
+                font-family: Georgia, 'Times New Roman', Times, serif;
+                font-size: 22px;
+            }
+            .contentDialogBox input[type=text],button {
+                display: block;
+                margin: 10px auto;
+                outline: none;
+                padding: 5px;
+                border-radius: 10px;
+                background: white;
+            }
+            .contentDialogBox button{
+                width: 100px;
+                background-color: gray;
+                cursor: pointer;
+                border: 1px solid black;
+                font-size: 22px;
+            }
+            .contentDialogBox button:hover{
+                background-color: white;
+                box-shadow: 5px 5px 10px black;
+            }
+            .wrapper-table{
+                height: 450px;
+                overflow:auto;
+                width:250px;
+                float:left;
+                margin-left:10%; 
+            }
+            .wrapper-table table{
+                width: 200px;
+                background-color: grey;
+                border: 1px solid black;
+                text-align: center;
+                box-shadow: 2px 2px 4px black;
+                font-size: 22px;
+                margin: 20px;
+            }
+            .message {
+                position: absolute;
+                top: -500px;
+                left: 20%;
+                width: 60%;
+                background-color: black;
+                opacity: 0.8;
+                font-size: 36px;
+                color: white;
+                z-index: 1;
+                text-align: center;
+                padding: 20px;
+            }
+            #btn-msg{
+                position: fixed;
+                top: 50%;
+                left: 0px;
+                width: 100px;
+                height: 100px;
+                z-index: 1;
+                opacity: 0.3;
+            }
+            @keyframes flash {
+                from {color: #fff;}
+                to {color: #777;}
+            }
+        </style>
+    </head>
+    <body>
+        <div id="message" class="message"></div>
+        <button id='btn-msg'>Read Message</button>
+        <div id='dialog' class="dialogBox">
+            <div class="contentDialogBox">
+                <p>What your name?</p>
+                <input id='nameInput' type="text">
+                <button onclick="onDialogButon()">Go</button>
+            </div>
+        </div>
+        <div class="wrraper" id='wrraper'>
+            <header>
+                <nav><a href="./index.html">Main</a></nav>
+                <nav><a href="./canvas.html">Canvas</a></nav>
+                <nav><a href="./balJump.html">Jump Ball</a></nav>
+                <nav><a href="./snake.html">Snake</a></nav>
+                <nav><a href="./tetris.html">Tetris</a></nav>
+                <nav style="float:right;width: auto;"><a href="./FinalProject v1.5 WEB1/login.html">פרוייקט קודם</a></nav>
+            </header>
+            <div class="main-content">
+                <h1 id='header-name'></h1>
+                <div class="wrapper-table">
+                    <table id='snake-table'>
+                        <tr><th colspan='2'>Snake</th></tr>
+                        <tr><th>Name</th><th>Score</th></tr>
+                    </table>
+                </div>
+                <div class="wrapper-table">
+                    <table id='tetris-table'>
+                        <tr><th colspan='2'>Tetris</th></tr>
+                        <tr><th>Name</th><th>Score</th></tr>
+                    </table>
+                </div>
+                <div class="wrapper-table">
+                    <table id='jump-ball-table'>
+                        <tr><th colspan='2'>Jump Ball</th></tr>
+                        <tr><th>Name</th><th>Score</th></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script>
+        var wrraper = document.getElementById('wrraper');
+        var btn = $('#btn-msg');
+        wrraper.addEventListener('mouseleave',()=>{
+            btn.animate({
+                width: '130px',
+                opacity : '1'
+            });
+            btn.html('Read Message');
+        });
+        wrraper.addEventListener('mouseenter',()=>{
+            btn.animate({
+                width: '30px',
+                opacity: '0.3'
+            });
+            btn.html('');
+        });
+
+        var message = $("#message");
+        /*get message from file*/
+        $.get("message.txt", (res)=> {
+            message.html(res);
+            message.css('top',-message.height()-100);
+        });
+        /*preview/hide message*/
+        $("#btn-msg").click(()=>{
+            if(parseInt(message.css("top")) < 0){
+                message.animate({
+                    top: message.height()+100,
+                });
+            }
+            else{
+                message.animate({
+                    top: -message.height()-100,
+                });
+            }
+        });
+        /*jquery fade wrraper*/
+        $("#wrraper").fadeIn(2000);
+
+        if(sessionStorage.getItem('name')==null){
+            document.getElementById('dialog').style.display='block';
+        }
+        else{
+            $('#header-name').text('Enjoy ' + sessionStorage.getItem('name'));
+        }
+        // score of snake 
+        var snakeScore=JSON.parse(localStorage.getItem('snake'));
+        if(snakeScore!=null){
+            snakeScore.sort(compare);
+            // table snake
+            var snakeTable = document.getElementById('snake-table');
+            setTable(snakeTable,snakeScore);
+        }
+        // score tetris
+        var tetrisScore=JSON.parse(localStorage.getItem('tetris'));
+        if(tetrisScore!=null){
+            tetrisScore.sort(compare);
+            //table tetris
+            var tetrisTable = document.getElementById('tetris-table');
+            setTable(tetrisTable,tetrisScore);   
+        }
+        //jump-ball score
+        var JumpBallScore = JSON.parse(localStorage.getItem('jump-ball'));
+        if(JumpBallScore!=null){
+            JumpBallScore.sort(compare);
+            // table jump ball
+            var JumpBallTable = document.getElementById('jump-ball-table');
+            setTable(JumpBallTable,JumpBallScore);   
+        }
+
+
+        /*set score table*/
+        function setTable(table,scores){
+            for(let i=0;i<scores.length && i<10;i++){
+                let row = document.createElement('TR');
+                let name = document.createElement('TD');
+                name.innerText=scores[i].name;
+                let score = document.createElement('TD');
+                score.innerText=scores[i].score;
+                row.appendChild(name);
+                row.appendChild(score);
+                table.appendChild(row);
+            }
+        }
+        //compare by score
+        function compare(a, b) {
+            if ( a.score < b.score ){
+                return 1;
+            }
+            if ( a.score > b.score ){
+                return -1;
+            }
+            return 0;
+        }
+    </script>
+</html> 
